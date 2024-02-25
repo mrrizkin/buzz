@@ -1,5 +1,4 @@
 import { createMutation, createQuery } from "@tanstack/solid-query";
-import { Accessor } from "solid-js";
 
 import { json, request } from "@/lib/request";
 import { jidToPhoneNumber } from "@/lib/utils";
@@ -124,11 +123,16 @@ export function useSenderDetail(id: number) {
   }));
 }
 
-export function useAvatar(token: Accessor<string>, jid: Accessor<string>) {
+interface UseAvatarParams {
+  token: string;
+  jid: string;
+}
+
+export function useAvatar(params: UseAvatarParams) {
   return createQuery(() => ({
-    queryKey: ["sender-avatar", token(), jid()],
+    queryKey: ["sender-avatar", params.token, params.jid],
     queryFn: async () => {
-      const response = await getAvatar(token(), jid());
+      const response = await getAvatar(params.token, params.jid);
       return response.data;
     },
     retry: 0,

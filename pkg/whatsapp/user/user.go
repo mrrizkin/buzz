@@ -10,6 +10,7 @@ type User struct {
 	Connected  *int   `db:"connected"  json:"connected"`
 	Expiration *int   `db:"expiration" json:"expiration"`
 	Events     string `db:"events"     json:"events"`
+	UserId     int    `db:"user_id"    json:"user_id"`
 }
 
 type UserInfo struct {
@@ -31,5 +32,6 @@ func New() string {
 		connected INTEGER,
 		expiration INTEGER,
 		events TEXT NOT NULL DEFAULT 'All'
+    user_id BIGINT NOT NULL REFERENCES users(id)
 	);`
 }

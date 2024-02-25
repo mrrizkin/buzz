@@ -1,6 +1,12 @@
+import { onMount } from "solid-js";
+
 import { LoginForm } from "./forms/login";
 
 function LoginPage() {
+  onMount(() => {
+    document.title = "Sign In";
+  });
+
   return (
     <div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
       <div class="flex flex-col space-y-2 mb-8">

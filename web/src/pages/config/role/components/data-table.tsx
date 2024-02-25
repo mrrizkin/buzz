@@ -14,25 +14,20 @@ import { createSignal } from "solid-js";
 
 import { formatDate } from "@/lib/utils";
 
-import { User } from "@/models/user";
+import { Role } from "@/models/role";
 
 import { Card, CardContent } from "@/components/ui/card";
 import DataTable from "@/components/ui/data-table";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
-type ColumnDefiniton = ColumnDef<User>;
+type ColumnDefiniton = ColumnDef<Role>;
 
 export const columns: ColumnDefiniton[] = [
   DataTable.RowExpand(),
-  DataTable.RowSelect(),
   {
     accessorKey: "name",
-    header: (header) => <DataTable.ColumnHeader column={header.column} title="Name" />,
+    header: (header) => <DataTable.ColumnHeader column={header.column} title="Role" />,
     enableHiding: false,
-  },
-  {
-    accessorKey: "username",
-    header: (header) => <DataTable.ColumnHeader column={header.column} title="Username" />,
   },
   {
     accessorKey: "created_at",
@@ -58,15 +53,24 @@ export const columns: ColumnDefiniton[] = [
   },
 ];
 
-export function createUserTable(data: User[], columns: ColumnDefiniton[]) {
+interface CreateRoleTableParams {
+  data: Role[];
+  columns: ColumnDefiniton[];
+}
+
+export function createRoleTable(params: CreateRoleTableParams) {
   const [sorting, setSorting] = createSignal<SortingState>([]);
   const [columnFilters, setColumnFilters] = createSignal<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = createSignal<VisibilityState>({});
   const [rowSelection, setRowSelection] = createSignal({});
 
   return createSolidTable({
-    data,
-    columns,
+    get data() {
+      return params.data;
+    },
+    get columns() {
+      return params.columns;
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -95,7 +99,7 @@ export function createUserTable(data: User[], columns: ColumnDefiniton[]) {
 }
 
 interface TableDetailProps {
-  user: User;
+  role: Role;
 }
 
 export function TableDetail(props: TableDetailProps) {
@@ -108,37 +112,22 @@ export function TableDetail(props: TableDetailProps) {
               <TableRow>
                 <TableCell class="w-[1%] whitespace-nowrap">ID</TableCell>
                 <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
-                <TableCell>{props.user.id || "-"}</TableCell>
+                <TableCell>{props.role.id || "-"}</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell class="w-[1%] whitespace-nowrap">Name</TableCell>
+                <TableCell class="w-[1%] whitespace-nowrap">Role</TableCell>
                 <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
-                <TableCell>{props.user.name || "-"}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell class="w-[1%] whitespace-nowrap">Username</TableCell>
-                <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
-                <TableCell>{props.user.username || "-"}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell class="w-[1%] whitespace-nowrap">Email</TableCell>
-                <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
-                <TableCell>{props.user.email || "-"}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell class="w-[1%] whitespace-nowrap">Whatsapp</TableCell>
-                <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
-                <TableCell>{props.user.whatsapp || "-"}</TableCell>
+                <TableCell>{props.role.name || "-"}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell class="w-[1%] whitespace-nowrap">Created At</TableCell>
                 <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
-                <TableCell>{props.user.created_at ? formatDate(props.user.created_at) : "-"}</TableCell>
+                <TableCell>{props.role.created_at ? formatDate(props.role.created_at) : "-"}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell class="w-[1%] whitespace-nowrap">Updated At</TableCell>
                 <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
-                <TableCell>{props.user.updated_at ? formatDate(props.user.updated_at) : "-"}</TableCell>
+                <TableCell>{props.role.updated_at ? formatDate(props.role.updated_at) : "-"}</TableCell>
               </TableRow>
             </TableBody>
           </Table>

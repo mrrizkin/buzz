@@ -12,7 +12,7 @@ import {
 } from "@tanstack/solid-table";
 import { Match, ParentProps, Switch, createSignal } from "solid-js";
 
-import { generateAvatarUrl } from "@/lib/utils";
+import { generateAvatarUrl, jidToPhoneNumber } from "@/lib/utils";
 
 import { useAvatar } from "@/services/sender";
 
@@ -33,10 +33,14 @@ export function columns(token: string): ColumnDefiniton[] {
       accessorKey: "avatar",
       header: (header) => <DataTable.ColumnHeader column={header.column} title="Avatar" />,
       cell: (cell) => {
-        const avatar = useAvatar(
-          () => token,
-          () => cell.row.original.jid,
-        );
+        const avatar = useAvatar({
+          get token() {
+            return token;
+          },
+          get jid() {
+            return cell.row.original.jid;
+          },
+        });
 
         return (
           <Avatar>
@@ -104,7 +108,12 @@ export function columns(token: string): ColumnDefiniton[] {
   ];
 }
 
-export function createContactsTable(data: Contact[], columns: ColumnDef<Contact>[]) {
+interface CreateContactsTableParams {
+  data: Contact[];
+  columns: ColumnDef<Contact>[];
+}
+
+export function createContactsTable(params: CreateContactsTableParams) {
   const [sorting, setSorting] = createSignal<SortingState>([]);
   const [columnFilters, setColumnFilters] = createSignal<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = createSignal<VisibilityState>({
@@ -113,8 +122,12 @@ export function createContactsTable(data: Contact[], columns: ColumnDef<Contact>
   const [rowSelection, setRowSelection] = createSignal({});
 
   return createSolidTable({
-    data,
-    columns,
+    get data() {
+      return params.data;
+    },
+    get columns() {
+      return params.columns;
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -172,6 +185,11 @@ export function TableDetail(props: ParentProps<TableDetailProps>) {
                 <TableCell class="w-[1%] whitespace-nowrap">Business Name</TableCell>
                 <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
                 <TableCell>{props.contact.businessName || "-"}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell class="w-[1%] whitespace-nowrap">Phone</TableCell>
+                <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
+                <TableCell>{props.contact.jid ? jidToPhoneNumber(props.contact.jid) : "-"}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell class="w-[1%] whitespace-nowrap">JID</TableCell>

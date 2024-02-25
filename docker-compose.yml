@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  database:
+    image: postgres:14.5
+    restart: 'no'
+    environment:
+      POSTGRES_PASSWORD: localdb
+      POSTGRES_USER: postgres
+      POSTGRES_DB: db_whatsapp
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./local-db:/var/lib/postgresql/data

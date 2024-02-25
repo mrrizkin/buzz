@@ -42,6 +42,11 @@ func (r *Router) Setup(app *fiber.App) {
 		TokenLookup: "cookie:auth-token",
 	})
 
+	whatsappTokenMiddleware := jwtware.New(jwtware.Config{
+		SigningKey:  jwtware.SigningKey{Key: []byte(r.env.Secret)},
+		TokenLookup: "header:X-API-TOKEN",
+	})
+
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("healthy")
 	})
@@ -55,12 +60,12 @@ func (r *Router) Setup(app *fiber.App) {
 	auth.Post("/logout", authMiddleware, r.auth.Logout)
 	auth.Get("/identify", authMiddleware, r.auth.IdentifyUser)
 
-	v1.Post("/whatsapp/create-user", r.whatsapp.CreateUser)
-	v1.Put("/whatsapp/update-user/:id", r.whatsapp.UpdateUser)
-	v1.Delete("/whatsapp/delete-user/:id", r.whatsapp.DeleteUser)
-	v1.Get("/whatsapp/users", r.whatsapp.GetWhatsappUser)
-	v1.Get("/whatsapp/user/:id", r.whatsapp.GetWhatsappUserById)
-	whatsapp := v1.Group("/whatsapp", r.whatsapp.UserInfo)
+	v1.Post("/whatsapp/create-user", whatsappTokenMiddleware, r.whatsapp.CreateUser)
+	v1.Put("/whatsapp/update-user/:id", whatsappTokenMiddleware, r.whatsapp.UpdateUser)
+	v1.Delete("/whatsapp/delete-user/:id", whatsappTokenMiddleware, r.whatsapp.DeleteUser)
+	v1.Get("/whatsapp/users", whatsappTokenMiddleware, r.whatsapp.GetWhatsappUser)
+	v1.Get("/whatsapp/user/:id", whatsappTokenMiddleware, r.whatsapp.GetWhatsappUserById)
+	whatsapp := v1.Group("/whatsapp", whatsappTokenMiddleware, r.whatsapp.UserInfo)
 	whatsapp.Post("/connect", r.whatsapp.Connect)
 	whatsapp.Post("/disconnect", r.whatsapp.Disconnect)
 	whatsapp.Get("/webhook", r.whatsapp.GetWebhook)

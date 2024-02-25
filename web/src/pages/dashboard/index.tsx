@@ -1,11 +1,17 @@
+import { onMount } from "solid-js";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Grid } from "@/components/ui/grid";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { Overview } from "@/components/dashboard/overview";
-import { RecentSales } from "@/components/dashboard/recent-sales";
+import { Overview } from "./components/overview";
+import { RecentSales } from "./components/recent-sales";
 
 function DashboardPage() {
+  onMount(() => {
+    document.title = "Dashboard";
+  });
+
   return (
     <div class="space-y-4 p-8 pt-6">
       <div class="flex items-center justify-between space-y-2">

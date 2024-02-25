@@ -1,4 +1,5 @@
 import { TbPlus } from "solid-icons/tb";
+import { onMount } from "solid-js";
 
 import { Role } from "@/models/role";
 
@@ -37,6 +38,10 @@ const data: Role[] = [
 
 function FlagPage() {
   const table = createRoleTable(data, columns);
+
+  onMount(() => {
+    document.title = "Flag";
+  });
 
   return (
     <div class="space-y-4 p-8 pt-6">

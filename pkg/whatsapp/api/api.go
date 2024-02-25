@@ -42,33 +42,33 @@ func New(
 	}
 }
 
-func (a *Api) CreateUser(payload *user.User) (*user.User, error) {
+func (a *Api) CreateUser(userId int, payload *user.User) (*user.User, error) {
 	user := user.User{
 		Name:  payload.Name,
 		Token: payload.Token,
 	}
 
-	if err := a.users.CreateUser(&user); err != nil {
+	if err := a.users.CreateUser(userId, &user); err != nil {
 		return nil, err
 	}
 
 	return &user, nil
 }
 
-func (a *Api) GetUsers() ([]user.User, error) {
-	return a.users.GetUsers()
+func (a *Api) GetUsers(userId int) ([]user.User, error) {
+	return a.users.GetUsers(userId)
 }
 
-func (a *Api) GetUserById(id int) (*user.User, error) {
+func (a *Api) GetUserById(userId, id int) (*user.User, error) {
 	return a.users.GetUserById(id)
 }
 
-func (a *Api) DeleteUser(payload *user.User) error {
-	return a.users.DeleteUser(payload)
+func (a *Api) DeleteUser(userId int, payload *user.User) error {
+	return a.users.DeleteUser(userId, payload)
 }
 
-func (a *Api) UpdateUser(payload *user.User) error {
-	return a.users.UpdateUser(payload)
+func (a *Api) UpdateUser(userId int, payload *user.User) error {
+	return a.users.UpdateUser(userId, payload)
 }
 
 func (a *Api) Connect(userInfo *user.UserInfo, payload *ConnectPayload) error {
@@ -293,7 +293,10 @@ func (a *Api) GetStatus(userInfo *user.UserInfo) (*GetStatusResponse, error) {
 	}, nil
 }
 
-func (a *Api) SendDocument(userInfo *user.UserInfo, payload *SendDocumentPayload) (whatsmeow.SendResponse, error) {
+func (a *Api) SendDocument(
+	userInfo *user.UserInfo,
+	payload *SendDocumentPayload,
+) (whatsmeow.SendResponse, error) {
 	txtid := userInfo.Id
 	userid, err := strconv.Atoi(txtid)
 	if err != nil {
@@ -322,7 +325,9 @@ func (a *Api) SendDocument(userInfo *user.UserInfo, payload *SendDocumentPayload
 	if payload.Document[0:29] == "data:application/octet-stream" {
 		dataURL, err := dataurl.DecodeString(payload.Document)
 		if err != nil {
-			return whatsmeow.SendResponse{}, errors.New("could not decode base64 encoded data from payload")
+			return whatsmeow.SendResponse{}, errors.New(
+				"could not decode base64 encoded data from payload",
+			)
 		}
 
 		filedata = dataURL.Data
@@ -356,7 +361,10 @@ func (a *Api) SendDocument(userInfo *user.UserInfo, payload *SendDocumentPayload
 	return client.SendMessage(context.Background(), recipient, msg)
 }
 
-func (a *Api) SendAudio(userInfo *user.UserInfo, payload *SendAudioPayload) (whatsmeow.SendResponse, error) {
+func (a *Api) SendAudio(
+	userInfo *user.UserInfo,
+	payload *SendAudioPayload,
+) (whatsmeow.SendResponse, error) {
 	txtid := userInfo.Id
 	userid, _ := strconv.Atoi(txtid)
 
@@ -380,12 +388,16 @@ func (a *Api) SendAudio(userInfo *user.UserInfo, payload *SendAudioPayload) (wha
 	var filedata []byte
 
 	if payload.Audio[0:14] != "data:audio/ogg" {
-		return whatsmeow.SendResponse{}, errors.New("audio data should start with \"data:audio/ogg;base64,\"")
+		return whatsmeow.SendResponse{}, errors.New(
+			"audio data should start with \"data:audio/ogg;base64,\"",
+		)
 	}
 
 	dataURL, err := dataurl.DecodeString(payload.Audio)
 	if err != nil {
-		return whatsmeow.SendResponse{}, errors.New("could not decode base64 encoded data from payload")
+		return whatsmeow.SendResponse{}, errors.New(
+			"could not decode base64 encoded data from payload",
+		)
 	}
 
 	filedata = dataURL.Data
@@ -420,7 +432,10 @@ func (a *Api) SendAudio(userInfo *user.UserInfo, payload *SendAudioPayload) (wha
 	return client.SendMessage(context.Background(), recipient, msg)
 }
 
-func (a *Api) SendImage(userInfo *user.UserInfo, payload *SendImagePayload) (whatsmeow.SendResponse, error) {
+func (a *Api) SendImage(
+	userInfo *user.UserInfo,
+	payload *SendImagePayload,
+) (whatsmeow.SendResponse, error) {
 
 	txtid := userInfo.Id
 	userid, err := strconv.Atoi(txtid)
@@ -448,12 +463,16 @@ func (a *Api) SendImage(userInfo *user.UserInfo, payload *SendImagePayload) (wha
 	var filedata []byte
 
 	if payload.Image[0:10] != "data:image" {
-		return whatsmeow.SendResponse{}, errors.New("image data should start with \"data:image/png;base64,\"")
+		return whatsmeow.SendResponse{}, errors.New(
+			"image data should start with \"data:image/png;base64,\"",
+		)
 	}
 
 	dataURL, err := dataurl.DecodeString(payload.Image)
 	if err != nil {
-		return whatsmeow.SendResponse{}, errors.New("could not decode base64 encoded data from payload")
+		return whatsmeow.SendResponse{}, errors.New(
+			"could not decode base64 encoded data from payload",
+		)
 	}
 
 	filedata = dataURL.Data
@@ -484,7 +503,10 @@ func (a *Api) SendImage(userInfo *user.UserInfo, payload *SendImagePayload) (wha
 	return client.SendMessage(context.Background(), recipient, msg)
 }
 
-func (a *Api) SendSticker(userInfo *user.UserInfo, payload *SendStickerPayload) (whatsmeow.SendResponse, error) {
+func (a *Api) SendSticker(
+	userInfo *user.UserInfo,
+	payload *SendStickerPayload,
+) (whatsmeow.SendResponse, error) {
 	txtid := userInfo.Id
 	userid, err := strconv.Atoi(txtid)
 	if err != nil {
@@ -511,12 +533,16 @@ func (a *Api) SendSticker(userInfo *user.UserInfo, payload *SendStickerPayload) 
 	var filedata []byte
 
 	if payload.Sticker[0:4] != "data" {
-		return whatsmeow.SendResponse{}, errors.New("data should start with \"data:mime/type;base64,\"")
+		return whatsmeow.SendResponse{}, errors.New(
+			"data should start with \"data:mime/type;base64,\"",
+		)
 	}
 
 	dataURL, err := dataurl.DecodeString(payload.Sticker)
 	if err != nil {
-		return whatsmeow.SendResponse{}, errors.New("could not decode base64 encoded data from payload")
+		return whatsmeow.SendResponse{}, errors.New(
+			"could not decode base64 encoded data from payload",
+		)
 	}
 
 	filedata = dataURL.Data
@@ -547,7 +573,10 @@ func (a *Api) SendSticker(userInfo *user.UserInfo, payload *SendStickerPayload) 
 	return client.SendMessage(context.Background(), recipient, msg)
 }
 
-func (a *Api) SendVideo(userInfo *user.UserInfo, payload *SendVideoPayload) (whatsmeow.SendResponse, error) {
+func (a *Api) SendVideo(
+	userInfo *user.UserInfo,
+	payload *SendVideoPayload,
+) (whatsmeow.SendResponse, error) {
 	txtid := userInfo.Id
 	userid, err := strconv.Atoi(txtid)
 	if err != nil {
@@ -568,12 +597,16 @@ func (a *Api) SendVideo(userInfo *user.UserInfo, payload *SendVideoPayload) (wha
 	var uploaded whatsmeow.UploadResponse
 	var filedata []byte
 	if payload.Video[0:4] != "data" {
-		return whatsmeow.SendResponse{}, errors.New("data should start with \"data:mime/type;base64,\"")
+		return whatsmeow.SendResponse{}, errors.New(
+			"data should start with \"data:mime/type;base64,\"",
+		)
 	}
 
 	dataURL, err := dataurl.DecodeString(payload.Video)
 	if err != nil {
-		return whatsmeow.SendResponse{}, errors.New("could not decode base64 encoded data from payload")
+		return whatsmeow.SendResponse{}, errors.New(
+			"could not decode base64 encoded data from payload",
+		)
 	}
 
 	client, err := a.whatsapp.GetClient(userid)
@@ -610,7 +643,10 @@ func (a *Api) SendVideo(userInfo *user.UserInfo, payload *SendVideoPayload) (wha
 	return client.SendMessage(context.Background(), recipient, msg)
 }
 
-func (a *Api) SendContact(userInfo *user.UserInfo, payload *SendContactPayload) (whatsmeow.SendResponse, error) {
+func (a *Api) SendContact(
+	userInfo *user.UserInfo,
+	payload *SendContactPayload,
+) (whatsmeow.SendResponse, error) {
 	txtid := userInfo.Id
 	userid, err := strconv.Atoi(txtid)
 	if err != nil {
@@ -648,7 +684,10 @@ func (a *Api) SendContact(userInfo *user.UserInfo, payload *SendContactPayload) 
 	return client.SendMessage(context.Background(), recipient, msg)
 }
 
-func (a *Api) SendLocation(userInfo *user.UserInfo, payload *SendLocationPayload) (whatsmeow.SendResponse, error) {
+func (a *Api) SendLocation(
+	userInfo *user.UserInfo,
+	payload *SendLocationPayload,
+) (whatsmeow.SendResponse, error) {
 	txtid := userInfo.Id
 	userid, err := strconv.Atoi(txtid)
 	if err != nil {
@@ -686,7 +725,11 @@ func (a *Api) SendLocation(userInfo *user.UserInfo, payload *SendLocationPayload
 
 	return client.SendMessage(context.Background(), recipient, msg)
 }
-func (a *Api) SendButton(userInfo *user.UserInfo, payload *SendButtonTextPayload) (whatsmeow.SendResponse, error) {
+
+func (a *Api) SendButton(
+	userInfo *user.UserInfo,
+	payload *SendButtonTextPayload,
+) (whatsmeow.SendResponse, error) {
 	txtid := userInfo.Id
 	userid, err := strconv.Atoi(txtid)
 	if err != nil {
@@ -733,7 +776,11 @@ func (a *Api) SendButton(userInfo *user.UserInfo, payload *SendButtonTextPayload
 		},
 	)
 }
-func (a *Api) SendList(userInfo *user.UserInfo, payload *SendListPayload) (whatsmeow.SendResponse, error) {
+
+func (a *Api) SendList(
+	userInfo *user.UserInfo,
+	payload *SendListPayload,
+) (whatsmeow.SendResponse, error) {
 	txtid := userInfo.Id
 	userid, err := strconv.Atoi(txtid)
 	if err != nil {
@@ -796,7 +843,10 @@ func (a *Api) SendList(userInfo *user.UserInfo, payload *SendListPayload) (whats
 	)
 }
 
-func (a *Api) SendText(userInfo *user.UserInfo, payload *SendTextPayload) (whatsmeow.SendResponse, error) {
+func (a *Api) SendText(
+	userInfo *user.UserInfo,
+	payload *SendTextPayload,
+) (whatsmeow.SendResponse, error) {
 	txtid := userInfo.Id
 	userId, err := strconv.Atoi(txtid)
 	if err != nil {
@@ -835,7 +885,10 @@ func (a *Api) SendText(userInfo *user.UserInfo, payload *SendTextPayload) (whats
 	return client.SendMessage(context.Background(), recipient, msg)
 }
 
-func (a *Api) CheckUser(userInfo *user.UserInfo, payload *CheckUserPayload) (*UserCollection, error) {
+func (a *Api) CheckUser(
+	userInfo *user.UserInfo,
+	payload *CheckUserPayload,
+) (*UserCollection, error) {
 	userid, err := strconv.Atoi(userInfo.Id)
 	if err != nil {
 		return nil, err
@@ -865,7 +918,10 @@ func (a *Api) CheckUser(userInfo *user.UserInfo, payload *CheckUserPayload) (*Us
 	return uc, nil
 }
 
-func (a *Api) GetUser(userInfo *user.UserInfo, payload CheckUserPayload) (*UserInfoCollection, error) {
+func (a *Api) GetUser(
+	userInfo *user.UserInfo,
+	payload CheckUserPayload,
+) (*UserInfoCollection, error) {
 	txtid := userInfo.Id
 	userid, err := strconv.Atoi(txtid)
 	if err != nil {
@@ -903,7 +959,10 @@ func (a *Api) GetUser(userInfo *user.UserInfo, payload CheckUserPayload) (*UserI
 	return uc, nil
 }
 
-func (a *Api) GetAvatar(userInfo *user.UserInfo, getAvatar *GetAvatarPayload) (*types.ProfilePictureInfo, error) {
+func (a *Api) GetAvatar(
+	userInfo *user.UserInfo,
+	getAvatar *GetAvatarPayload,
+) (*types.ProfilePictureInfo, error) {
 	txtid := userInfo.Id
 	userid, err := strconv.Atoi(txtid)
 	if err != nil {

@@ -12,6 +12,8 @@ import {
 } from "@tanstack/solid-table";
 import { Match, ParentProps, Show, Switch, createSignal } from "solid-js";
 
+import { jidToPhoneNumber } from "@/lib/utils";
+
 import { Sender } from "@/models/sender";
 
 import { Badge } from "@/components/ui/badge";
@@ -48,15 +50,24 @@ export const columns: ColumnDefiniton[] = [
   },
 ];
 
-export function createSenderTable(data: Sender[], columns: ColumnDefiniton[]) {
+interface CreateSenderTableParams {
+  data: Sender[];
+  columns: ColumnDefiniton[];
+}
+
+export function createSenderTable(params: CreateSenderTableParams) {
   const [sorting, setSorting] = createSignal<SortingState>([]);
   const [columnFilters, setColumnFilters] = createSignal<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = createSignal<VisibilityState>({});
   const [rowSelection, setRowSelection] = createSignal({});
 
   return createSolidTable({
-    data,
-    columns,
+    get data() {
+      return params.data;
+    },
+    get columns() {
+      return params.columns;
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -137,6 +148,11 @@ export function TableDetail(props: ParentProps<TableDetailProps>) {
                 <TableCell class="w-[1%] whitespace-nowrap">ID</TableCell>
                 <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
                 <TableCell>{props.sender.id || "-"}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell class="w-[1%] whitespace-nowrap">Phone</TableCell>
+                <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
+                <TableCell>{props.sender?.jid ? jidToPhoneNumber(props.sender?.jid) : "-"}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell class="w-[1%] whitespace-nowrap">JID</TableCell>

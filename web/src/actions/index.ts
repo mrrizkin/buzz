@@ -2,61 +2,10 @@ import { toggleSidebarPin } from "@/store/global";
 import { ColorModeContextType } from "@kobalte/core";
 import { Navigator } from "@solidjs/router";
 
-import { Menu } from "@/types";
-
 export type ActionCtx = {
   color: ColorModeContextType;
   navigate: Navigator;
-  menu: () => Menu[];
 };
-
-function menuAction(ctx: ActionCtx) {
-  const menus: Menu[] = [];
-
-  for (const menu of ctx.menu()) {
-    if (menu.href && menu.show) {
-      menus.push(menu);
-    }
-    if (menu.children && menu.show) {
-      for (const child of menu.children) {
-        if (child.href && child.show) {
-          if (menu.href) {
-            child.href = menu.href + child.href;
-          }
-          menus.push(child);
-        }
-      }
-    }
-  }
-
-  const actions = [];
-  const children = [];
-
-  for (const menu of menus) {
-    const id = "Menu " + (menu.href?.replace(/\//g, " ").trim() || "Dashboard");
-    children.push(id);
-    actions.push({
-      id,
-      parent: "Menu",
-      title: "Menu " + menu.name,
-      handler: () => {
-        if (menu.href) {
-          ctx.navigate(menu.href);
-        }
-      },
-    });
-  }
-
-  return [
-    {
-      id: "Menu",
-      title: "Menu",
-      mdIcon: "menu",
-      children,
-    },
-    ...actions,
-  ];
-}
 
 const toggleSidebarAction = {
   id: "Toggle Sidebar",
@@ -116,5 +65,5 @@ function logoutAction(ctx: ActionCtx) {
 }
 
 export function actions(ctx: ActionCtx) {
-  return [...menuAction(ctx), toggleSidebarAction, ...switchThemeAction(ctx), logoutAction(ctx)];
+  return [toggleSidebarAction, ...switchThemeAction(ctx), logoutAction(ctx)];
 }

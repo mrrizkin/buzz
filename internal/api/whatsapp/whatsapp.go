@@ -18,7 +18,12 @@ type WhatsappAPI struct {
 	user     *user.Repository
 }
 
-func NewWhatsappAPI(api *api.Api, wa *whatsapp.Whatsapp, log *zerolog.Logger, user *user.Repository) *WhatsappAPI {
+func NewWhatsappAPI(
+	api *api.Api,
+	wa *whatsapp.Whatsapp,
+	log *zerolog.Logger,
+	user *user.Repository,
+) *WhatsappAPI {
 	return &WhatsappAPI{
 		whatsapp: wa,
 		api:      api,

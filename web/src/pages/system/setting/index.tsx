@@ -1,4 +1,10 @@
+import { onMount } from "solid-js";
+
 function SettingPage() {
+  onMount(() => {
+    document.title = "Setting";
+  });
+
   return (
     <div class="space-y-4 p-8 pt-6">
       <div class="flex items-center justify-between space-y-2">

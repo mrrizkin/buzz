@@ -1,5 +1,4 @@
 import { useParams } from "@solidjs/router";
-import { Table as TanstackTable } from "@tanstack/solid-table";
 import { RiSystemRefreshLine } from "solid-icons/ri";
 import { TbLoader } from "solid-icons/tb";
 import { For, Show, createEffect, createSignal, onCleanup } from "solid-js";
@@ -14,22 +13,28 @@ import DataTable from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { QRCode, SenderInfo } from "@/components/sender/detail";
-
-import { STATUS } from "./constant";
-import { TableDetail, columns, createContactsTable } from "./data-table";
+import Cards from "./components/cards";
+import { STATUS } from "./components/constant";
+import { TableDetail, columns, createContactsTable } from "./components/data-table";
 
 function SenderDetailPage() {
   const params = useParams();
   const sender = useSenderDetail(parseInt(params.id));
+  const [token, setToken] = createSignal<string>("");
   const [scanInterval, setScanInterval] = createSignal<NodeJS.Timeout | null>(null);
   const [scanned, setScanned] = createSignal<boolean>(false);
   const [qrcode, setQrcode] = createSignal<string>("");
   const [status, setStatus] = createSignal<string>("");
   const [contacts, setContacts] = createSignal<Contact[]>([]);
-  const [table, setTable] = createSignal<TanstackTable<Contact>>(
-    createContactsTable(contacts(), columns(sender.data?.token || "")),
-  );
+
+  const table = createContactsTable({
+    get data() {
+      return contacts();
+    },
+    get columns() {
+      return columns(token());
+    },
+  });
 
   onCleanup(() => {
     if (scanInterval() !== null) {
@@ -40,11 +45,18 @@ function SenderDetailPage() {
     setScanned(false);
     setQrcode("");
     setStatus("");
+    setToken("");
+  });
+
+  createEffect(() => {
+    if (sender.data?.token) {
+      setToken(sender.data?.token);
+    }
   });
 
   createEffect(() => {
     if (status() === STATUS.CONNECTED) {
-      getContacts(sender.data?.token || "").then((data) => {
+      getContacts(token() || "").then((data) => {
         if (data === null) {
           return;
         }
@@ -66,76 +78,115 @@ function SenderDetailPage() {
   });
 
   createEffect(() => {
-    setTable(createContactsTable(contacts(), columns(sender.data?.token || "")));
-  });
-
-  createEffect(() => {
-    statusRequest(sender.data?.token || "").then((status) => {
-      if (status === null) {
+    statusRequest(token() || "").then((status) => {
+      if (!status) {
         setStatus(STATUS.NOT_CONNECTED);
         return;
       }
 
-      if (status.success == true) {
-        if (status.data.logged_in === false) {
-          if (status.data.connected === true) {
-            showQR();
-          } else {
-            setStatus(STATUS.NOT_CONNECTED);
-            connect(sender.data?.token || "").then(() => {
-              setStatus(STATUS.CONNECTED);
-            });
-          }
-        } else {
-          if (status.data.connected === false) {
-            connect(sender.data?.token || "").then(() => {
-              setStatus(STATUS.CONNECTED);
-            });
-          }
-          setStatus(STATUS.CONNECTED);
-          setScanned(true);
-        }
-      } else if (status.success == false) {
-        if (status.error == "no session") {
-          connect(sender.data?.token || "").then((data) => {
-            if (data.success === true) {
-              showQR();
-            } else {
-              setStatus(STATUS.COULD_NOT_CONNECT);
-            }
-          });
-        } else if (status.error == "Unauthorized") {
-          setStatus(STATUS.BAD_AUTHENTICATION);
-        }
-      } else {
+      if (status.success != true && status.success != false) {
         setStatus(STATUS.BAD_AUTHENTICATION);
+        return;
       }
+
+      const isSuccess = status.success;
+      const isLoggedIn = status.data.logged_in;
+      const isConnected = status.data.connected;
+
+      // connected to whatsapp and logged in
+      if (isSuccess && isLoggedIn && isConnected) {
+        setStatus(STATUS.CONNECTED);
+        setScanned(true);
+        return;
+      }
+
+      // not connected to whatsapp and logged in
+      if (isSuccess && isLoggedIn && !isConnected) {
+        connect(token() || "").then(() => {
+          setStatus(STATUS.CONNECTED);
+        });
+        setScanned(true);
+        return;
+      }
+
+      // connected to whatsapp but not logged in
+      if (isSuccess && !isLoggedIn && isConnected) {
+        setStatus(STATUS.NOT_SCANNED);
+        showQR();
+        return;
+      }
+
+      // not connected to whatsapp and not logged in
+      if (isSuccess && !isLoggedIn && !isConnected) {
+        setStatus(STATUS.NOT_CONNECTED);
+        connect(token() || "").then(() => {
+          setStatus(STATUS.CONNECTED);
+        });
+        return;
+      }
+
+      // error
+      if (!isSuccess) {
+        switch (status.error) {
+          case "no session": // this usually occurs when the its a first time login
+            connect(token() || "").then((data) => {
+              if (data.success === true) {
+                showQR();
+              } else {
+                setStatus(STATUS.COULD_NOT_CONNECT);
+              }
+            });
+            break;
+          case "Unauthorized": // this usually occurs when the token is invalid
+            setStatus(STATUS.BAD_AUTHENTICATION);
+            break;
+          default:
+            setStatus(STATUS.NOT_CONNECTED);
+            break;
+        }
+
+        return;
+      }
+
       return;
     });
   });
 
   function checkStatus() {
-    statusRequest(sender.data?.token || "").then((status) => {
-      if (status === null) {
+    statusRequest(token() || "").then((status) => {
+      if (!status) {
         setStatus(STATUS.NOT_CONNECTED);
         return;
       }
 
-      if (status.success == true) {
-        if (status.data.logged_in === true) {
-          setScanned(true);
-          setStatus(STATUS.CONNECTED);
-          if (scanInterval() !== null) {
-            clearInterval(scanInterval()!);
-            setScanInterval(null);
-          }
-        }
-      } else {
+      const isSuccess = status.success;
+      const isLoggedIn = status.data.logged_in;
+
+      if (isSuccess != true || isSuccess != false) {
+        setStatus(STATUS.BAD_AUTHENTICATION);
+        return;
+      }
+
+      if (!isSuccess) {
         if (scanInterval() !== null) {
           clearInterval(scanInterval()!);
           setScanInterval(null);
         }
+        setStatus(STATUS.NOT_CONNECTED);
+        return;
       }
+
+      if (isSuccess && isLoggedIn) {
+        if (scanInterval() !== null) {
+          clearInterval(scanInterval()!);
+          setScanInterval(null);
+        }
+        setScanned(true);
+        setStatus(STATUS.CONNECTED);
+        return;
+      }
+
+      return;
     });
   }
 
@@ -156,31 +207,27 @@ function SenderDetailPage() {
     setStatus(STATUS.SHOW_QR);
     while (!scanned()) {
       setStatus(STATUS.NOT_SCANNED);
-      var data = await getQR(sender.data?.token || "");
-      if (data === null) {
+      var data = await getQR(token() || "");
+      if (!data === null) {
         setStatus(STATUS.NOT_CONNECTED);
         return;
       }
 
-      if (data.success == true) {
-        setQrcode(data.qrcode);
-        if (data.qrcode != "") {
-          await wait(15 * 1000);
-        }
-      } else {
-        setScanned(true);
+      if (!data.success) {
         if (scanInterval() !== null) {
           clearInterval(scanInterval()!);
           setScanInterval(null);
         }
-
+        setScanned(true);
         setStatus(STATUS.TIMEOUT);
+        return;
+      }
+
+      setQrcode(data.qrcode);
+      if (data.qrcode != "") {
+        await wait(15 * 1000); // wait 15 seconds
       }
     }
-  }
-
-  function senderData() {
-    return sender.data;
   }
 
   return (
@@ -212,19 +259,19 @@ function SenderDetailPage() {
               <div class="flex gap-x-4">
                 <Input
                   placeholder="Filter name..."
-                  value={(table().getColumn("name")?.getFilterValue() as string) ?? ""}
+                  value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                   onInput={(event) => {
-                    table().getColumn("name")?.setFilterValue(event.target.value);
+                    table.getColumn("name")?.setFilterValue(event.target.value);
                   }}
                   class="max-w-sm"
                 />
                 <div class="ml-auto flex gap-x-4">
-                  <DataTable.ColumnVisibility table={table()} />
+                  <DataTable.ColumnVisibility table={table} />
                 </div>
               </div>
               <DataTable.Root>
-                <DataTable.Table table={table()}>{(row) => <TableDetail contact={row.original} />}</DataTable.Table>
-                <DataTable.Pagination table={table()} />
+                <DataTable.Table table={table}>{(row) => <TableDetail contact={row.original} />}</DataTable.Table>
+                <DataTable.Pagination table={table} />
               </DataTable.Root>
             </TabsContent>
             <TabsContent value="send-message" class="space-y-4">
@@ -294,11 +341,11 @@ function SenderDetailPage() {
           </Tabs>
         </div>
         <div class="col-span-5">
-          <SenderInfo sender={senderData()} status={status} />
+          <Cards.SenderInfo sender={sender.data} status={status} />
         </div>
         <div class="col-span-5">
           <Show when={qrcode() !== ""}>
-            <QRCode qrcode={qrcode()} />
+            <Cards.QRCode qrcode={qrcode()} />
           </Show>
         </div>
       </div>

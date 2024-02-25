@@ -1,24 +1,26 @@
-import { Table } from "@tanstack/solid-table";
 import { RiSystemRefreshLine } from "solid-icons/ri";
 import { TbLoader, TbPlus } from "solid-icons/tb";
-import { Show, createEffect, createSignal } from "solid-js";
+import { Show, onMount } from "solid-js";
 
 import { useRoles } from "@/services/role";
-
-import { Role } from "@/models/role";
 
 import { Button } from "@/components/ui/button";
 import Datatable from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 
-import { TableDetail, columns, createRoleTable } from "./data-table";
+import { TableDetail, columns, createRoleTable } from "./components/data-table";
 
 function RolePage() {
   const role = useRoles();
-  const [table, setTable] = createSignal<Table<Role>>(createRoleTable(role.data || [], columns));
+  const table = createRoleTable({
+    get data() {
+      return role.data || [];
+    },
+    columns,
+  });
 
-  createEffect(() => {
-    setTable(createRoleTable(role.data || [], columns));
+  onMount(() => {
+    document.title = "Role";
   });
 
   return (
@@ -35,9 +37,9 @@ function RolePage() {
         <div class="flex items-end gap-x-4">
           <Input
             placeholder="Filter roles..."
-            value={(table().getColumn("name")?.getFilterValue() as string) ?? ""}
+            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
             onInput={(event) => {
-              table().getColumn("name")?.setFilterValue(event.target.value);
+              table.getColumn("name")?.setFilterValue(event.target.value);
             }}
             class="max-w-sm"
           />
@@ -54,15 +56,15 @@ function RolePage() {
                 }}
               />
             </Button>
-            <Datatable.ColumnVisibility table={table()} />
+            <Datatable.ColumnVisibility table={table} />
             <Button>
               <TbPlus class="w-5 h-5  mr-2" />
               Tambah
             </Button>
           </div>
         </div>
-        <Datatable.Table table={table()}>{(row) => <TableDetail role={row.original} />}</Datatable.Table>
-        <Datatable.Pagination table={table()} />
+        <Datatable.Table table={table}>{(row) => <TableDetail role={row.original} />}</Datatable.Table>
+        <Datatable.Pagination table={table} />
       </Datatable.Root>
     </div>
   );

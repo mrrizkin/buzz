@@ -69,6 +69,7 @@ func server(
 			AllowCredentials: true,
 		}))
 	} else {
+		app.Use(cors.New())
 		log.Info().Msg("development mode disabled")
 	}
 

@@ -2,7 +2,7 @@ import { createMutation, createQuery } from "@tanstack/solid-query";
 
 import { request } from "@/lib/request";
 
-import { AuthForm } from "@/pages/login/validations/auth";
+import { AuthForm } from "@/pages/auth/login/validations/auth";
 
 import { User } from "@/models/user";
 

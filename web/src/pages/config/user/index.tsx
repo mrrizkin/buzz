@@ -1,24 +1,27 @@
-import { Table } from "@tanstack/solid-table";
 import { RiSystemRefreshLine } from "solid-icons/ri";
-import { TbLoader, TbPlus } from "solid-icons/tb";
-import { Show, createEffect, createSignal } from "solid-js";
+import { TbLoader } from "solid-icons/tb";
+import { Show, onMount } from "solid-js";
 
 import { useUsers } from "@/services/user";
-
-import { User } from "@/models/user";
 
 import { Button } from "@/components/ui/button";
 import Datatable from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 
-import { TableDetail, columns, createUserTable } from "./data-table";
+import { TableDetail, columns, createUserTable } from "./components/data-table";
+import Dialog from "./components/dialog";
 
 function UserPage() {
   const user = useUsers();
-  const [table, setTable] = createSignal<Table<User>>(createUserTable(user.data || [], columns));
+  const table = createUserTable({
+    get data() {
+      return user.data || [];
+    },
+    columns,
+  });
 
-  createEffect(() => {
-    setTable(createUserTable(user.data || [], columns));
+  onMount(() => {
+    document.title = "User";
   });
 
   return (
@@ -35,9 +38,9 @@ function UserPage() {
         <div class="flex items-end gap-x-4">
           <Input
             placeholder="Filter username..."
-            value={(table().getColumn("username")?.getFilterValue() as string) ?? ""}
+            value={(table.getColumn("username")?.getFilterValue() as string) ?? ""}
             onInput={(event) => {
-              table().getColumn("username")?.setFilterValue(event.target.value);
+              table.getColumn("username")?.setFilterValue(event.target.value);
             }}
             class="max-w-sm"
           />
@@ -54,15 +57,19 @@ function UserPage() {
                 }}
               />
             </Button>
-            <Datatable.ColumnVisibility table={table()} />
-            <Button>
-              <TbPlus class="w-5 h-5  mr-2" />
-              Tambah
-            </Button>
+            <Datatable.ColumnVisibility table={table} />
+            <Dialog.CreateUserForm />
           </div>
         </div>
-        <Datatable.Table table={table()}>{(row) => <TableDetail user={row.original} />}</Datatable.Table>
-        <Datatable.Pagination table={table()} />
+        <Datatable.Table table={table}>
+          {(row) => (
+            <TableDetail user={row.original}>
+              <Dialog.EditUserForm user={row.original} />
+              <Dialog.DeleteUserForm user={row.original} />
+            </TableDetail>
+          )}
+        </Datatable.Table>
+        <Datatable.Pagination table={table} />
       </Datatable.Root>
     </div>
   );

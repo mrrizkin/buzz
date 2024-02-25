@@ -2,6 +2,7 @@
 import { ColorModeProvider, ColorModeScript } from "@kobalte/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
 import { render } from "solid-js/web";
+import { Toaster as Sonner } from "solid-sonner";
 
 import { Toaster } from "@/components/ui/toast";
 
@@ -24,6 +25,7 @@ render(
         <Routes />
       </ColorModeProvider>
       <Toaster />
+      <Sonner closeButton richColors position="top-right" />
     </QueryClientProvider>
   ),
   document.getElementById("root")!,

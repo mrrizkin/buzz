@@ -1,10 +1,8 @@
 import { Match, Switch } from "solid-js";
 
-import { generateAvatarUrl } from "@/lib/utils";
+import { generateAvatarUrl, jidToPhoneNumber } from "@/lib/utils";
 
 import { useAvatar } from "@/services/sender";
-
-import { STATUS } from "@/pages/sender/detail/constant";
 
 import { Sender } from "@/models/sender";
 
@@ -12,16 +10,22 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
+import { STATUS } from "./constant";
+
 interface SenderInfoProps {
   sender?: Sender;
   status: () => string;
 }
 
-export function SenderInfo(props: SenderInfoProps) {
-  const avatar = useAvatar(
-    () => props.sender?.token || "",
-    () => props.sender?.jid || "",
-  );
+function SenderInfo(props: SenderInfoProps) {
+  const avatar = useAvatar({
+    get token() {
+      return props.sender?.token || "";
+    },
+    get jid() {
+      return props.sender?.jid || "";
+    },
+  });
 
   return (
     <Card>
@@ -51,6 +55,11 @@ export function SenderInfo(props: SenderInfoProps) {
               <TableCell class="w-[1%] whitespace-nowrap">Name</TableCell>
               <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
               <TableCell>{props.sender?.name || "-"}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell class="w-[1%] whitespace-nowrap">Phone</TableCell>
+              <TableCell class="w-[1%] whitespace-nowrap">:</TableCell>
+              <TableCell>{props.sender?.jid ? jidToPhoneNumber(props.sender?.jid) : "-"}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell class="w-[1%] whitespace-nowrap">Token</TableCell>
@@ -93,7 +102,7 @@ interface QRCodeProps {
   qrcode?: string;
 }
 
-export function QRCode(props: QRCodeProps) {
+function QRCode(props: QRCodeProps) {
   return (
     <Card>
       <CardContent class="mt-6 flex flex-col items-center gap-8">
@@ -102,3 +111,8 @@ export function QRCode(props: QRCodeProps) {
     </Card>
   );
 }
+
+export default {
+  QRCode: QRCode,
+  SenderInfo: SenderInfo,
+};

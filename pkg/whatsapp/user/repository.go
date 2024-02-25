@@ -23,7 +23,7 @@ func (r *Repository) Migration() string {
 	return New()
 }
 
-func (r *Repository) CreateUser(user *User) error {
+func (r *Repository) CreateUser(userId int, user *User) error {
 	_, err := r.GetUserByToken(user.Token)
 
 	switch err {
@@ -36,7 +36,8 @@ func (r *Repository) CreateUser(user *User) error {
 	}
 
 	_, err = r.db.Exec(
-		"INSERT INTO whatsapp_users (name, token) VALUES ($1, $2)",
+		"INSERT INTO whatsapp_users (user_id, name, token) VALUES ($1, $2, $3)",
+		userId,
 		user.Name,
 		user.Token,
 	)
@@ -47,12 +48,13 @@ func (r *Repository) CreateUser(user *User) error {
 	return nil
 }
 
-func (r *Repository) UpdateUser(user *User) error {
+func (r *Repository) UpdateUser(userId int, user *User) error {
 	_, err := r.db.Exec(
-		"UPDATE whatsapp_users SET name = $1, token = $2 WHERE id = $3",
+		"UPDATE whatsapp_users SET name = $1, token = $2 WHERE id = $3 AND user_id = $4",
 		user.Name,
 		user.Token,
 		user.Id,
+		userId,
 	)
 	if err != nil {
 		r.log.Error().Err(err).Msg("failed to update user")
@@ -61,10 +63,11 @@ func (r *Repository) UpdateUser(user *User) error {
 	return nil
 }
 
-func (r *Repository) DeleteUser(user *User) error {
+func (r *Repository) DeleteUser(userId int, user *User) error {
 	_, err := r.db.Exec(
-		"DELETE FROM whatsapp_users WHERE id = $1",
+		"DELETE FROM whatsapp_users WHERE id = $1 AND user_id = $2",
 		user.Id,
+		userId,
 	)
 	if err != nil {
 		r.log.Error().Err(err).Msg("failed to delete user")
@@ -85,11 +88,12 @@ func (r *Repository) GetConnectedUser() ([]User, error) {
 	return users, nil
 }
 
-func (r *Repository) GetUsers() ([]User, error) {
+func (r *Repository) GetUsers(userId int) ([]User, error) {
 	users := []User{}
 	err := r.db.DB.Select(
 		&users,
-		"SELECT * FROM whatsapp_users ORDER BY id DESC",
+		"SELECT * FROM whatsapp_users WHERE user_id = $1 ORDER BY id DESC",
+		userId,
 	)
 	if err != nil {
 		r.log.Error().Err(err).Msg("failed to get users")
@@ -112,11 +116,13 @@ func (r *Repository) GetUserById(id int) (*User, error) {
 	return &user, nil
 }
 
-func (r *Repository) GetUserByJid(jid string) (*User, error) {
+func (r *Repository) GetUserByJid(userId int, jid string) (*User, error) {
 	var user User
 	err := r.db.Get(
 		&user,
-		"SELECT * FROM whatsapp_users WHERE jid = $1",
+		"SELECT * FROM whatsapp_users WHERE jid = $1 AND user_id = $2",
+		jid,
+		userId,
 	)
 	if err != nil {
 		return nil, err

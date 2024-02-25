@@ -41,6 +41,9 @@ dependencies:
   solid-ninja-keys:
     specifier: ^0.3.0
     version: 0.3.0(solid-js@1.8.7)
+  solid-sonner:
+    specifier: ^0.2.5
+    version: 0.2.5(solid-js@1.8.7)
   tailwind-merge:
     specifier: ^2.1.0
     version: 2.1.0
@@ -1931,6 +1934,14 @@ packages:
       '@babel/types': 7.23.6
       solid-js: 1.8.7
     dev: true
+
+  /solid-sonner@0.2.5(solid-js@1.8.7):
+    resolution: {integrity: sha512-IMMwKm92VT/2uDwIEOrOnqbSHkj6uGLR6KM6NxjFXe5gHKnWDsr61N2elUHpsZpdG0/UhwQ2kd6s7hRSAT3SVw==}
+    peerDependencies:
+      solid-js: ^1.6.0
+    dependencies:
+      solid-js: 1.8.7
+    dev: false
 
   /source-map-js@1.0.2:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
