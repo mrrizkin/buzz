@@ -17,7 +17,7 @@ require (
 	go.mau.fi/whatsmeow v0.0.0-20240223131828-1bdd11e8ee3e
 	go.uber.org/fx v1.20.1
 	golang.org/x/crypto v0.19.0
-	google.golang.org/protobuf v1.32.0
+	google.golang.org/protobuf v1.33.0
 	modernc.org/sqlite v1.29.2
 )
 
